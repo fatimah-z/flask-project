@@ -7,24 +7,24 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from  celery import Celery
 import requests
 import json
-import urllib
+import schedule
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '12345678'
 app.config['CELERY_BROKER_URL'] = 'pyamqp://guest@localhost//'
 db = SQLAlchemy(app)
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL']) #celery configuration
 celery.conf.update(app.config)
 
 
-app.app_context().push()
-
+#user model for user credentials
 class User(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(20),nullable=False,unique=True)
     password = db.Column(db.String(20),nullable=False)
 
+#car model for car registrations
 class Car(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     objectId =  db.Column(db.String(25),nullable=False)
@@ -35,47 +35,44 @@ class Car(db.Model):
     category = db.Column(db.String(25),nullable=True)
 
 
-@app.route('/')
-def index():
-    return "hello world"
+#signup route
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json() #Retreiving the json data
+    email = data["email"]   #Retreiving the email value
+    password = data["password"] #Retreiving the password value
+
+    user = User.query.filter_by(email=email).first() #Query the db 
+                                                    #to check if email already exists
+    #if user exists
+    if user:
+        return "User already exists"
+
+    #if users does not exists create new
+    new_user = User(email=email,password=generate_password_hash(password=password))
+    db.session.add(new_user) #adding record to db session
+    db.session.commit() #committing changes to db session
+
+    return "Success"
 
 #Login Route
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    email = data["email"]
-    password = data["password"]
+    data = request.get_json() #Retreiving the json data
+    email = data["email"] #Retreiving the email value
+    password = data["password"] #Retreiving the password value
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first() #Query the db 
+                                                    #to check if email already exists
 
     if not user and check_password_hash(user.password,password):
         return "Incorrect Credentials"
 
-    # login_user(user)
     return "Success"
-
-#signup route
-@app.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    email = data["email"]
-    password = data["password"]
-
-    user = User.query.filter_by(email=email).first()
-
-    if user:
-        return "User already exists"
-
-    new_user = User(email=email,password=generate_password_hash(password=password))
-    db.session.add(new_user)
-    db.session.commit()
-
-    return "Success"
-
 
 @app.route('/getData',methods=['GET'])
 def getdata():     
-    result=syncdata()
+    result=syncdata() #calling the method as background task
     return result
 
 @celery.task
@@ -85,26 +82,49 @@ def syncdata():
         'X-Parse-Application-Id':'gP38fEGPgSSBvvO4Kz9McQD2UpUrcpIlrXDyHLWc',
         'X-Parse-REST-API-Key': '72gJMaTFClPr90oA7bkRYdUy0PJIcKQ8tj8bQvtP'
     }
-    data = json.loads(requests.get(url, headers=headers).content.decode('utf-8')) 
+    data = json.loads(requests.get(url, headers=headers).content.decode('utf-8'))
+
+    #traversing our each object in the results array 
     for record in data['results']:
-        print('record',record)
-        new_record = Car(objectId= record['objectId'],
-                        createdAt=record['createdAt'],
-                        updatedAt=record['updatedAt'],
-                        year=None,
-                        make =None,
-                        category =None
-                        # year=record['year'],
-                        # make =record['make'],
-                        # category = record['category']
-                        )
-        db.session.add(new_record)
+        existing = Car.query.filter_by(objectId=record['objectId']).first()
+        #if record does not exist create new
+        if(existing == None): 
+            new_record = Car(objectId= record['objectId'],
+                            createdAt=record['createdAt'],
+                            updatedAt=record['updatedAt'],
+                            year=None, #data fetched has missing attributes
+                            make =None,
+                            category =None
+                            # year=record['year'],
+                            # make =record['make'],
+                            # category = record['category']
+                            )
+
+            db.session.add(new_record)
+        #if changes found in existing record update it
+        elif(existing.__dict__ != record):
+            print('in update')
+            existing.createdAt = record['createdAt']
+            existing.updatedAt = record['updatedAt']
+            existing.year = None
+            existing.make = None
+            existing.category = None
+            # existing.year = record['year']
+            # existing.make = record['make']
+            # existing.category = record['catgory']
+
+
     db.session.commit()
     
     return 'success'    
 
+
+schedule.every().day.at('00:00').do(syncdata) #tried implementing automated call to updata data
+
+
 with app.app_context():
     db.create_all()
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
