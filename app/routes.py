@@ -35,7 +35,7 @@ def login():
     # to check if email already exists
 
     if not user and check_password_hash(user.password, password):
-        return "Incorrect Credentials"
+        return Response("Incorrect Credentials", status=401)
 
     return Response("login success", status=200)
 
