@@ -21,7 +21,7 @@ def signup():
     db.session.add(new_user)  # adding record to db session
     db.session.commit()  # committing changes to db session
 
-    return Response("Signup Success", status=201)
+    return Response("Signup Success", status=200)
 
 
 # Login Route
