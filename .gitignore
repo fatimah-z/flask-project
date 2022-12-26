@@ -2,6 +2,6 @@ venv/
 .idea/
 .flaskenv
 migrations/alembic.ini
-#migrations/env.py
+migrations/env.py
 migrations/script.py.mako
 app.db
