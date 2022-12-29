@@ -30,11 +30,12 @@ def login():
     data = request.get_json()  # Retrieving the json data
     email = data["email"]  # Retrieving the email value
     password = data["password"]  # Retrieving the password value
-
+    print(User.query.all())
+    print('hello')
     user = User.query.filter_by(email=email).first()  # Query the db
     # to check if email already exists
 
-    if not user and check_password_hash(user.password, password):
+    if not user or (user and not check_password_hash(user.password, password)):
         return Response("Incorrect Credentials", status=401)
 
     return Response("login success", status=200)
