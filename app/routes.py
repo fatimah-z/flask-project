@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()  # Retrieving the json data
+    username = data["username"]
     email = data["email"]  # Retrieving the email value
     password = data["password"]  # Retrieving the password value
 
@@ -17,7 +18,7 @@ def signup():
         return Response("User Already exists", status=409)
 
     # if users does not exist create new
-    new_user = User(email=email, password=generate_password_hash(password=password))
+    new_user = User(username=username, email=email, password=generate_password_hash(password=password))
     db.session.add(new_user)  # adding record to db session
     db.session.commit()  # committing changes to db session
 
