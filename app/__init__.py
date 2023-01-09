@@ -6,12 +6,10 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
-db = SQLAlchemy()
+db = SQLAlchemy(app)
+from app import routes, models
 db.init_app(app)
 migrate = Migrate(app, db)
-
-
-from app import routes, models
 
 
 
