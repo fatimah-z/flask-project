@@ -3,8 +3,12 @@ from app.models import User
 from app import app, db
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 @app.route('/signup', methods=['POST'])
 def signup():
+    """
+    This functions takes user credentials for authorization  and returns an HTTP response
+    """
     data = request.get_json()  # Retrieving the json data
     username = data["username"]
     email = data["email"]  # Retrieving the email value
@@ -23,9 +27,14 @@ def signup():
     db.session.commit()  # committing changes to db session
 
     return Response("Signup Success", status=200)
+
+
 # Login Route
 @app.route('/login', methods=['POST'])
 def login():
+    """
+        This functions takes user credentials for authentication and log in. It returns an HTTP response
+    """
     data = request.get_json()  # Retrieving the json data
     email = data["email"]  # Retrieving the email value
     password = data["password"]  # Retrieving the password value

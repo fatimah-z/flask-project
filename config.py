@@ -10,8 +10,5 @@ class Config(object):
     DB_PORT = os.environ.get('DB_PORT')
 
     SQLALCHEMY_DATABASE_URI = f"mysql+mysqldb://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    # 'sqlite:///' + os.path.join(basedir, 'app.db')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-
