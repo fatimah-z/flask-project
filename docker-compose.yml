@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_NAME: flaskProject
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_PORT: 3306
+      MYSQL_DATABASE: flaskProject
+    links:
+      - db
+    ports:
+      - '8000:5000'
+    volumes:
+      - .:/flask-project
+  db:
+    image: mysql:8.0.31
+    ports:
+      - '3306:3306'
+    restart: always
+    environment:
+      MYSQL_DATABASE: flaskProject
+#      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD : root
+    volumes:
+      - db-data:/var/lib/mysql
+volumes:
+  db-data:
