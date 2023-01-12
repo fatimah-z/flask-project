@@ -1,7 +1,9 @@
-from flask import request, Response, json, session
 from datetime import datetime, timedelta
+
 import jwt
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import json, request, Response, session
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from app import app, db
 from app.auth import token_required
 from app.models import User
