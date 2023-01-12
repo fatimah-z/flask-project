@@ -1,10 +1,10 @@
-from app.models import User
-from app import app, db
-from datetime import datetime, timedelta
 from flask import request, Response, json, session
+from datetime import datetime, timedelta
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
+from app import app, db
 from app.auth import token_required
+from app.models import User
 
 
 # route to check if jwt authentication is successful

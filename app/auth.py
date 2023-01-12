@@ -1,8 +1,8 @@
-from app import app
-from datetime import datetime, timedelta
 from flask import request, Response, session
+from datetime import datetime, timedelta
 from functools import wraps
 import jwt
+from app import app
 
 
 def token_required(func):
@@ -50,7 +50,7 @@ def token_required(func):
                 raise jwt.InvalidTokenError
                 # return 'Invalid token.1 Please log in again.'
         except jwt.InvalidTokenError:
-            return Response('Invalid token. Please log in again.',status=400)
+            return Response('Invalid token. Please log in again.', status=400)
         except Exception as e:
             return e
 
