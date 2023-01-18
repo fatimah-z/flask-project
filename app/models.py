@@ -1,5 +1,6 @@
-from app import db
 import uuid
+
+from app import db
 
 
 class User(db.Model):
@@ -27,7 +28,7 @@ class Car(db.Model):
     make = db.Column(db.String(20), nullable=True)
     category = db.Column(db.String(25), nullable=True)
 
-    def __init__(self,objectId, createdAt, updatedAt, year, make, category):
+    def __init__(self, objectId, createdAt, updatedAt, year, make, category):
         self.objectId = objectId
         self.createdAt = createdAt
         self.updatedAt = updatedAt
