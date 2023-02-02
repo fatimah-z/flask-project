@@ -29,6 +29,7 @@ class Car(db.Model):
     category = db.Column(db.String(25), nullable=True)
 
     def __init__(self, objectId, createdAt, updatedAt, year, make, category):
+        self.id = str(uuid.uuid4())
         self.objectId = objectId
         self.createdAt = createdAt
         self.updatedAt = updatedAt
