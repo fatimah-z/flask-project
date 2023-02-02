@@ -1,8 +1,10 @@
-version: '3'
+version: '3.1'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     environment:
       DB_HOST: db
       DB_NAME: flaskProject
@@ -12,21 +14,59 @@ services:
       MYSQL_DATABASE: flaskProject
     links:
       - db
+    depends_on:
+      - db
+      - redis
     ports:
       - '8000:5000'
     volumes:
-      - .:/flask-project
+      - .:/flaskProject
+
   db:
     image: mysql:8.0.31
+    container_name: db
     ports:
       - '3306:3306'
     restart: always
     environment:
       MYSQL_DATABASE: flaskProject
-#      MYSQL_USER: root
+      MYSQL_USER: root
       MYSQL_PASSWORD: root
       MYSQL_ROOT_PASSWORD : root
     volumes:
       - db-data:/var/lib/mysql
+
+  worker:
+    build: .
+    container_name: worker
+    restart: always
+    command: celery -A app.celery_app.celery worker --loglevel=info --pool=prefork --uid=nobody --gid=nogroup
+    volumes:
+      - .:/flaskProject
+    links:
+      - redis
+    depends_on:
+      - redis
+      - db
+
+  beat:
+    build: .
+    container_name: beat
+    command: celery -A app.celery_app.celery beat --loglevel=debug
+    links:
+      - redis
+      - worker
+    depends_on:
+      - redis
+      - worker
+      - db
+    volumes:
+      - .:/flaskProject
+
+  redis:
+    container_name: redis
+    image: redis:latest
+
+
 volumes:
   db-data:
